@@ -6,7 +6,7 @@ class GlobodnsClientTest < Test::Unit::TestCase
   end
 
   def test_initialize_without_settings
-    assert_raise(RuntimeError) do
+    assert_raise(ArgumentError) do
       klass.new(settings.delete_if { |k,v| k == :auth_token || k == :host })
     end
   end
