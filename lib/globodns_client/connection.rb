@@ -52,6 +52,10 @@ module GlobodnsClient
         host = get_host(key, zone, kind)
         response = request('post', 'record', host, zone['id'], kind, value)
       end
+      begin
+        schedule_export
+      rescue Exception
+      end
       response['record']
     end
 
@@ -61,6 +65,11 @@ module GlobodnsClient
         raise GlobodnsClient::NotFound, "Record not found for (#{key})"
       end
       response = request('delete', 'record', nil, record['id'])
+      begin
+        schedule_export
+      rescue Exception
+      end
+      response
     end
 
     private
@@ -88,10 +97,14 @@ module GlobodnsClient
 
       raise ArgumentError, "Invalid request. id shouldn't be nil" if kind.eql?('record') && id.nil?
       headers = {'X-Auth-Token' => @auth_token, 'Content-type' => 'application/json'}
-      if kind.eql?('domain')
+
+      case kind
+      when 'domain'
         uri = 'domains.json'
-      else
+      when 'record'
         uri = "domains/#{id}/records.json"
+      when 'export'
+        uri = 'bind9/squedule_export.json'
       end
 
       case method
@@ -104,8 +117,10 @@ module GlobodnsClient
             raise "Not implemented"
           end
         when 'post'
-          payload = {kind => {'name'=> value, 'type' => type, 'content' => addr}}
-          payload = payload.to_json
+          if kind.eql?('record')
+            payload = {kind => {'name'=> value, 'type' => type, 'content' => addr}}
+            payload = payload.to_json
+          end
         when  'delete'
           uri = "records/#{id}.json"
       end
@@ -123,5 +138,9 @@ module GlobodnsClient
       end
       method.eql?('delete') ? "" : JSON.parse(response.body)
     end
+  end
+
+  def schedule_export
+    response = request('post', 'export', nil)
   end
 end
