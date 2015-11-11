@@ -31,17 +31,21 @@ module GlobodnsClient
           raise GlobodnsClient::NotFound, "Couldn't find a proper zone for '#{key}'"
         end
       end
-      res.is_a?(Array) ? res[0]['domain'] : res
+      res
     end
 
-    def get_record(key, kind, zone = nil)
-      zone = get_zone(key, kind) if zone.nil?
-      host = get_host(key, zone, kind)
-      response = request('get', 'record', host, zone['id'], kind)
-      response.each do |r|
-        return r[kind.downcase] unless r[kind.downcase].nil?
+    def get_record(key, kind, zones=[] )
+      zones.flatten!
+      res = []
+      zones = get_zone(key, kind) if zones.nil?
+      zones.each do |zone|
+        host = get_host(key, zone, kind)
+        response = request('get', 'record', host, zone['domain']['id'], kind)
+        response.each do |r|
+          res << r[kind.downcase] unless r[kind.downcase].nil?
+        end
       end
-      false
+      res.empty? ? false : res
     end
 
     def new_record(key, kind, value)
@@ -76,9 +80,9 @@ module GlobodnsClient
 
     def get_host(key, zone, kind)
       if kind.eql?('A')
-        host = key.split('.'+zone['name'])[0]
+        host = key.split('.'+zone['domain']['name'])[0]
       elsif kind.eql?('PTR')
-        case zone['name'].count('.')
+        case zone['domain']['name'].count('.')
         when 4, 5
           host = key.split('.').last
         when 3

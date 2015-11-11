@@ -78,6 +78,6 @@ class GlobodnsClientTest < Test::Unit::TestCase
   end
 
   def zone_response
-    {"id"=>"123", "name"=>"example.com"}
+    [{"domain"=>{"id"=>"123", "name"=>"example.com"}}]
   end
 end
