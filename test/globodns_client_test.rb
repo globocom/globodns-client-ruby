@@ -21,7 +21,21 @@ class GlobodnsClientTest < Test::Unit::TestCase
   def test_get_zone
     assert_nothing_raised do
       res = mock()
+      res1 = mock()
       res2 = mock()
+      RestClient::Request.expects(:execute).with(
+        method:'get',
+        url:"#{settings[:host]}/domains.json",
+        timeout: settings[:timeout],
+        headers: {
+          'X-Auth-Token' => settings[:auth_token],
+          'Content-type' => 'application/json',
+          :params => {query: settings[:fqdn]},
+        },
+        payload: nil
+      ).returns(res).once
+      res.expects(:code).with().returns(200).twice
+      res.expects(:body).with().returns('[]').once
       RestClient::Request.expects(:execute).with(
         method:'get',
         url:"#{settings[:host]}/domains.json",
@@ -32,9 +46,9 @@ class GlobodnsClientTest < Test::Unit::TestCase
           :params => {query: settings[:fqdn].split('.',2).last},
         },
         payload: nil
-      ).returns(res).once
-      res.expects(:code).with().returns(200).twice
-      res.expects(:body).with().returns('[]').once
+      ).returns(res1).once
+      res1.expects(:code).with().returns(200).twice
+      res1.expects(:body).with().returns('[]').once
       RestClient::Request.expects(:execute).with(
         method:'get',
         url:"#{settings[:host]}/domains.json",

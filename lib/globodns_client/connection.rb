@@ -11,6 +11,15 @@ module GlobodnsClient
     end
 
     def get_zone(key, kind = 'A')
+      res = request('get','domain', key, nil, kind)
+      if kind.eql?('A') && !res.empty?
+        res
+      else
+        get_zone_recursive(key, kind)
+      end
+    end
+
+    def get_zone_recursive(key, kind = 'A')
       if kind.eql?('A')
         domain = key.split('.', 2).last
       elsif kind.eql?('PTR')
@@ -26,7 +35,7 @@ module GlobodnsClient
       res = request('get','domain', domain, nil, kind)
       if res.empty?
         if domain.count('.') > 1 && kind == 'A' || domain.count('.') > 2 && kind == 'PTR'
-          res = get_zone(domain, kind)
+          res = get_zone_recursive(domain, kind)
         else
           raise GlobodnsClient::NotFound, "Couldn't find a proper zone for '#{key}'"
         end
