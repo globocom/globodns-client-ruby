@@ -7,7 +7,7 @@ class GlobodnsClientTest < Test::Unit::TestCase
 
   def test_initialize_without_settings
     assert_raise(ArgumentError) do
-      klass.new(settings.delete_if { |k,v| k == :auth_token || k == :host })
+      klass.new(settings.delete_if { |k,v| k == :bearer_token || k == :host })
     end
   end
 
@@ -28,7 +28,7 @@ class GlobodnsClientTest < Test::Unit::TestCase
         url:"#{settings[:host]}/domains.json",
         timeout: settings[:timeout],
         headers: {
-          'X-Auth-Token' => settings[:auth_token],
+          'Authorization' => "Bearer #{settings[:bearer_token]}",
           'Content-type' => 'application/json',
           :params => {query: settings[:fqdn]},
         },
@@ -41,7 +41,7 @@ class GlobodnsClientTest < Test::Unit::TestCase
         url:"#{settings[:host]}/domains.json",
         timeout: settings[:timeout],
         headers: {
-          'X-Auth-Token' => settings[:auth_token],
+          'Authorization' => "Bearer #{settings[:bearer_token]}",
           'Content-type' => 'application/json',
           :params => {query: settings[:fqdn].split('.',2).last},
         },
@@ -54,7 +54,7 @@ class GlobodnsClientTest < Test::Unit::TestCase
         url:"#{settings[:host]}/domains.json",
         timeout: settings[:timeout],
         headers: {
-          'X-Auth-Token' => settings[:auth_token],
+          'Authorization' => "Bearer #{settings[:bearer_token]}",
           'Content-type' => 'application/json',
           :params => {query: settings[:zone]},
         },
@@ -77,7 +77,7 @@ class GlobodnsClientTest < Test::Unit::TestCase
 
   def settings
     {
-      :auth_token => 'foo',
+      :bearer_token => 'foo',
       :host => 'globodns.com',
       :fqdn => 'a.test.example.com',
       :zone => 'example.com',

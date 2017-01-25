@@ -4,10 +4,14 @@ require 'json'
 module GlobodnsClient
   class Connection
     def initialize(options)
-      @auth_token = options[:auth_token]
+      @bearer_token = options[:bearer_token]
       @host = options[:host]
       @timeout = options[:timeout] || 30
-      raise ArgumentError, "You must inform the auth_token and host for GloboDNS" unless @auth_token && @host
+      raise ArgumentError, "You must inform the bearer token and host for GloboDNS" unless @bearer_token && @host
+    end
+
+    def set_token token
+      @bearer_token = token
     end
 
     def get_zone(key, kind = 'A')
@@ -43,7 +47,7 @@ module GlobodnsClient
       res
     end
 
-    def get_record(key, kind, zones=[] )
+    def get_record(key, kind, zones=[])
       zones.flatten!
       res = []
       zones = get_zone(key, kind) if zones.nil?
@@ -109,7 +113,7 @@ module GlobodnsClient
     def request(method,kind,value,id = nil, type = nil, addr = nil)
 
       raise ArgumentError, "Invalid request. id shouldn't be nil" if kind.eql?('record') && id.nil?
-      headers = {'X-Auth-Token' => @auth_token, 'Content-type' => 'application/json'}
+      headers = {'Authorization' => "Bearer #{@bearer_token}", 'Content-type' => 'application/json'}
 
       case kind
       when 'domain'
