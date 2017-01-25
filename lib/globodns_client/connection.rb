@@ -117,7 +117,7 @@ module GlobodnsClient
       when 'record'
         uri = "domains/#{id}/records.json"
       when 'export'
-        uri = 'bind9/squedule_export.json'
+        uri = 'bind9/schedule_export.json'
       end
 
       case method
