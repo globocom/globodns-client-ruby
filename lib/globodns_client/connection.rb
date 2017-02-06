@@ -47,16 +47,14 @@ module GlobodnsClient
       res
     end
 
-    def get_record(key, kind, zones=[])
-      zones.flatten!
+    def get_record(key, kind, zone)
+      zone.flatten!
       res = []
-      zones = get_zone(key, kind) if zones.nil?
-      zones.each do |zone|
-        host = get_host(key, zone, kind)
-        response = request('get', 'record', host, zone['domain']['id'], kind)
-        response.each do |r|
-          res << r[kind.downcase] unless r[kind.downcase].nil?
-        end
+      zone = get_zone(key, kind) if zone.nil?
+      host = get_host(key, zone, kind)
+      response = request('get', 'record', host, zone[0][:domain][:id], kind)
+      response.each do |r|
+        res << r[kind.downcase.to_sym] unless r[kind.downcase.to_sym].nil?
       end
       res.empty? ? false : res
     end
@@ -67,7 +65,7 @@ module GlobodnsClient
         raise GlobodnsClient::AlreadyExists, "Item (#{key}) already exists with reference (#{record['content']})"
       else
         host = get_host(key, zone, kind)
-        response = request('post', 'record', host, zone['id'], kind, value)
+        response = request('post', 'record', host, zone[0][:id], kind, value)
       end
       begin
         schedule_export
@@ -78,24 +76,28 @@ module GlobodnsClient
 
     def delete_record(key, kind)
       zone = get_zone(key, kind)
-      unless record = get_record(key, kind, zone)
+      unless records = get_record(key, kind, zone)
         raise GlobodnsClient::NotFound, "Record not found for (#{key})"
       end
-      response = request('delete', 'record', nil, record['id'])
+      response=[]
+      records.each do |record|
+        response << request('delete', 'record', nil, record[:id])
+      end
       begin
         schedule_export
       rescue Exception
+      ensure
+        response
       end
-      response
     end
 
     private
 
     def get_host(key, zone, kind)
       if kind.eql?('A')
-        host = key.split('.'+zone['domain']['name'])[0]
+        host = key.split('.'+zone[0][:domain][:name])[0]
       elsif kind.eql?('PTR')
-        case zone['domain']['name'].count('.')
+        case zone[0][:domain][:name].count('.')
         when 4, 5
           host = key.split('.').last
         when 3
@@ -153,7 +155,7 @@ module GlobodnsClient
       if response.code < 200 || response.code > 399
         raise "Couldn't get a response from GloboDNS - code (#{response.code} / message #{response.body})"
       end
-      method.eql?('delete') ? "" : JSON.parse(response.body)
+      method.eql?('delete') ? "" : JSON.parse(response.body, {:symbolize_names => true, :object_class => Hash})
     end
   end
 
