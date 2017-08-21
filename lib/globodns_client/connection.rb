@@ -75,12 +75,19 @@ module GlobodnsClient
     end
 
     def new_record(key, kind, value)
-      zone = get_zone(key, kind)
-      if record = get_record(key, kind, zone)
-        raise GlobodnsClient::AlreadyExists, "Item (#{key}) already exists with reference (#{record['content']})"
-      else
+      zone = get_domain key
+      unless zone.nil?
+        a_records = get_record(key, 'A', zone)
+        case kind
+        when 'A'
+          raise GlobodnsClient::AlreadyExists, "Item (#{key}) already exists with reference (#{a_records[0][:content]})" if a_records.collect{|r| r[:content]}.include? value
+        when 'CNAME'
+          cname_records = get_record(key, 'CNAME', zone)
+          raise GlobodnsClient::AlreadyExists, "Item (#{key}) already exists" if a_records or cname_records
+        end
+
         host = get_host(key, zone, kind)
-        response = request('post', 'record', host, zone[0][:id], kind, value)
+        response = request('post', 'record', host, zone[0][:domain][:id], kind, value)
       end
       begin
         schedule_export
