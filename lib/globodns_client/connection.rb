@@ -14,6 +14,21 @@ module GlobodnsClient
       @bearer_token = token
     end
 
+    def get_domain(key)
+      domain = key.dup
+      domain.chomp!('.')
+      res = {}
+      while domain.count('.') >= 1
+        res = request('get','domain', domain)
+        if !res.empty?
+          domain = ""
+        else
+          domain.gsub!(/^([a-zA-Z0-9\-_]*.)/,'')
+        end
+      end
+      res unless res.empty?
+    end
+
     def get_zone(key, kind = 'A')
       res = request('get','domain', key, nil, kind)
       if kind.eql?('A') && !res.empty?
@@ -132,6 +147,8 @@ module GlobodnsClient
             headers[:params] = {query: value}
           elsif type.eql?('PTR')
             headers[:params] = {query: value, reverse: true}
+          elsif kind.eql?('domain')
+            headers[:params] = {query: value}
           else
             raise "Not implemented"
           end
