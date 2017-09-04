@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.2](https://github.com/globocom/globodns-client-ruby/releases/tag/v0.2.2) (04/09/17)
+## [0.2.3](https://github.com/globocom/globodns-client-ruby/releases/tag/v0.2.3) (04/09/17)
 ##### - Enhancements
  * Added TXT records operations (get and create)
 
