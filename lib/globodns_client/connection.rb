@@ -39,7 +39,7 @@ module GlobodnsClient
     end
 
     def get_zone_recursive(key, kind = 'A')
-      if kind.eql?('A') or kind.eql?('CNAME')
+      if kind.eql?('A') or kind.eql?('CNAME') or kind.eql?('TXT')
         domain = key.split('.', 2).last
       elsif kind.eql?('PTR')
         if key.include?('in-addr.arpa')
@@ -53,7 +53,7 @@ module GlobodnsClient
       end
       res = request('get','domain', domain, nil, kind)
       if res.empty?
-        if domain.count('.') > 1 && (kind == 'A' or kind == 'CNAME') || domain.count('.') > 2 && kind == 'PTR'
+        if domain.count('.') > 1 && (kind == 'A' or kind == 'CNAME') or kind.eql?('TXT') || domain.count('.') > 2 && kind == 'PTR'
           res = get_zone_recursive(domain, kind)
         else
           raise GlobodnsClient::NotFound, "Couldn't find a proper zone for '#{key}'"
@@ -116,7 +116,7 @@ module GlobodnsClient
     private
 
     def get_host(key, zone, kind)
-      if kind.eql?('A') or kind.eql?('CNAME')
+      if kind.eql?('A') or kind.eql?('CNAME') or kind.eql?('TXT')
         host = key.split('.'+zone[0][:domain][:name])[0]
       elsif kind.eql?('PTR')
         case zone[0][:domain][:name].count('.')
@@ -150,7 +150,7 @@ module GlobodnsClient
 
       case method
         when 'get'
-          if type.eql?('A') or type.eql?('CNAME')
+          if type.eql?('A') or type.eql?('CNAME') or type.eql?('TXT')
             headers[:params] = {query: value}
           elsif type.eql?('PTR')
             headers[:params] = {query: value, reverse: true}
