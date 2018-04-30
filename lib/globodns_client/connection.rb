@@ -116,7 +116,7 @@ module GlobodnsClient
     private
 
     def get_host(key, zone, kind)
-      if kind.eql?('A') or kind.eql?('CNAME') or kind.eql?('TXT')
+      if kind.eql?('A') or kind.eql?('AAAA') or kind.eql?('CNAME') or kind.eql?('TXT')
         host = key.split('.'+zone[0][:domain][:name])[0]
       elsif kind.eql?('PTR')
         case zone[0][:domain][:name].count('.')
@@ -150,7 +150,7 @@ module GlobodnsClient
 
       case method
         when 'get'
-          if type.eql?('A') or type.eql?('CNAME') or type.eql?('TXT')
+          if type.eql?('A') or type.eql?('AAAA') or type.eql?('CNAME') or type.eql?('TXT')
             headers[:params] = {query: value}
           elsif type.eql?('PTR')
             headers[:params] = {query: value, reverse: true}
