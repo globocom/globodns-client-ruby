@@ -80,7 +80,7 @@ module GlobodnsClient
         a_records = get_record(key, 'A', zone)
         case kind
         when 'A'
-          raise GlobodnsClient::AlreadyExists, "Item (#{key}) already exists with reference (#{a_records[0][:content]})" if a_records.collect{|r| r[:content]}.include? value
+          raise GlobodnsClient::AlreadyExists, "Item (#{key}) already exists with reference (#{a_records[0][:content]})" if (a_records anda_records.collect{|r| r[:content]}.include? value)
         when 'CNAME'
           cname_records = get_record(key, 'CNAME', zone)
           raise GlobodnsClient::AlreadyExists, "Item (#{key}) already exists" if a_records or cname_records
