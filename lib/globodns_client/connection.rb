@@ -74,6 +74,19 @@ module GlobodnsClient
       res.empty? ? false : res
     end
 
+    def get_record_matching(key, kind, zone, content=[])
+      matching = []
+      records = get_record(key, kind, zone)
+
+      return false unless records
+
+      records.each do |record|
+        matching << record if content.include? record[:content]
+      end
+
+      matching.empty? ? false : matching
+    end
+
     def new_record(key, kind, value)
       zone = get_domain key
       unless zone.nil?
@@ -96,11 +109,23 @@ module GlobodnsClient
       response['record']
     end
 
-    def delete_record(key, kind)
+    def delete_record(key, kind, content = [], remove_all = true)
+      if !remove_all and content.empty?
+        raise GlobodnsClient::MissingContent, "Record not found for (#{key}) with content (#{content})"
+      end
+
       zone = get_zone(key, kind)
-      unless records = get_record(key, kind, zone)
+
+      if remove_all and content.empty?
+        records = get_record(key, kind, zone)
+      else
+        records = get_record_matching(key, kind, zone, content)
+      end
+
+      unless records
         raise GlobodnsClient::NotFound, "Record not found for (#{key})"
       end
+
       response=[]
       records.each do |record|
         response << request('delete', 'record', nil, record[:id])
