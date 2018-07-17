@@ -29,6 +29,34 @@ class GlobodnsClientTest < Test::Unit::TestCase
     # end
   end
 
+  def test_delete_record_with_string_content
+      get_zone_assertions
+      get_record_assertions
+      delete_record_assertion
+      conn = klass.new(settings)
+      del = conn.delete_record('a.test.example.com','A', '10.1.1.1', false)
+  end
+
+  def test_delete_record_with_array_content
+      get_zone_assertions
+      get_record_assertions
+      delete_record_assertion
+      conn = klass.new(settings)
+      del = conn.delete_record('a.test.example.com','A', ['10.1.1.1'], false)
+  end
+
+  def test_fail_delete_record_with_content
+      get_zone_assertions
+      get_record_assertions
+      conn = klass.new(settings)
+      assert_raises(GlobodnsClient::NotFound) { conn.delete_record('a.test.example.com','A', content = ['1.2.3.4'], remove_all = false) }
+  end
+
+  def test_fail_delete_record_without_content
+      conn = klass.new(settings)
+      assert_raises(GlobodnsClient::MissingContent) { conn.delete_record('a.test.example.com','A', content = [], remove_all = false) }
+  end
+
   def test_get_zone
     assert_nothing_raised do
       get_zone_assertions
